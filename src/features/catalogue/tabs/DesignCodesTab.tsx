@@ -109,7 +109,8 @@ const DesignCodesTab: React.FC = () => {
       });
       toast.success("Design code updated");
     } else {
-      addDesignCode(trimmed, seriesId, thumbnailUrl || undefined);
+      const parentSeries = seriesList.find((s) => s.id === seriesId);
+      addDesignCode(trimmed, seriesId, parentSeries?.finishSizePairs ?? [], thumbnailUrl || undefined);
       toast.success("Design code added");
     }
     closeDialog();
@@ -193,7 +194,11 @@ const DesignCodesTab: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 text-nl-600">{sr?.code ?? "—"}</td>
                     <td className="px-4 py-3 text-nl-600">
-                      {sr ? (finishMap[sr.finishId] ?? "—") : "—"}
+                      {sr
+                        ? [...new Set(sr.finishSizePairs.map((p) => p.finishId))]
+                            .map((fid) => finishMap[fid] ?? "?")
+                            .join(", ") || "—"
+                        : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <StatusPill
@@ -255,7 +260,7 @@ const DesignCodesTab: React.FC = () => {
               {seriesList.length === 0 && <option value="">No series available</option>}
               {seriesList.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.code} — {finishMap[s.finishId] ?? "?"}
+                  {s.code} — {[...new Set(s.finishSizePairs.map((p) => p.finishId))].map((fid) => finishMap[fid] ?? "?").join(", ")}
                 </option>
               ))}
             </select>

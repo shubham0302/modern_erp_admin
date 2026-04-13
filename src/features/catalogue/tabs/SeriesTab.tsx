@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useCatalogueStore } from "../store";
-import type { Series } from "../types";
+import type { FinishSizePair, Series } from "../types";
 import Toolbar from "../components/Toolbar";
 import EmptyState from "../components/EmptyState";
 import RowActions from "../components/RowActions";
@@ -13,6 +13,7 @@ import Input from "@/components/ui/Input";
 const SeriesTab: React.FC = () => {
   const seriesList = useCatalogueStore((s) => s.series);
   const finishes = useCatalogueStore((s) => s.finishes);
+  const sizes = useCatalogueStore((s) => s.sizes);
   const addSeries = useCatalogueStore((s) => s.addSeries);
   const updateSeries = useCatalogueStore((s) => s.updateSeries);
   const deleteSeries = useCatalogueStore((s) => s.deleteSeries);
@@ -23,7 +24,7 @@ const SeriesTab: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<Series | null>(null);
 
   const [code, setCode] = useState("");
-  const [finishId, setFinishId] = useState("");
+  const [selectedPairs, setSelectedPairs] = useState<FinishSizePair[]>([]);
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
 
@@ -31,19 +32,41 @@ const SeriesTab: React.FC = () => {
     () => Object.fromEntries(finishes.map((f) => [f.id, f.name])),
     [finishes],
   );
+  const sizeMap = useMemo(
+    () => Object.fromEntries(sizes.map((s) => [s.id, s.label])),
+    [sizes],
+  );
+
+  const getFinishNames = (pairs: FinishSizePair[]) => {
+    const uniqueFinishIds = [...new Set(pairs.map((p) => p.finishId))];
+    return uniqueFinishIds.map((id) => finishMap[id] ?? "?").join(", ");
+  };
 
   const filtered = useMemo(
     () =>
       seriesList.filter((s) => {
         const q = search.toLowerCase();
+        const finishNames = getFinishNames(s.finishSizePairs);
         return (
           s.code.toLowerCase().includes(q) ||
           (s.description ?? "").toLowerCase().includes(q) ||
-          (finishMap[s.finishId] ?? "").toLowerCase().includes(q)
+          finishNames.toLowerCase().includes(q)
         );
       }),
     [seriesList, search, finishMap],
   );
+
+  const hasPair = (finishId: string, sizeId: string) =>
+    selectedPairs.some((p) => p.finishId === finishId && p.sizeId === sizeId);
+
+  const togglePair = (finishId: string, sizeId: string) => {
+    setSelectedPairs((prev) =>
+      hasPair(finishId, sizeId)
+        ? prev.filter((p) => !(p.finishId === finishId && p.sizeId === sizeId))
+        : [...prev, { finishId, sizeId }],
+    );
+    if (error) setError("");
+  };
 
   const openAdd = () => {
     if (finishes.length === 0) {
@@ -52,7 +75,7 @@ const SeriesTab: React.FC = () => {
     }
     setAdding(true);
     setCode("");
-    setFinishId(finishes[0]?.id ?? "");
+    setSelectedPairs([]);
     setDescription("");
     setError("");
   };
@@ -60,7 +83,7 @@ const SeriesTab: React.FC = () => {
   const openEdit = (s: Series) => {
     setEditing(s);
     setCode(s.code);
-    setFinishId(s.finishId);
+    setSelectedPairs([...s.finishSizePairs]);
     setDescription(s.description ?? "");
     setError("");
   };
@@ -69,7 +92,7 @@ const SeriesTab: React.FC = () => {
     setAdding(false);
     setEditing(null);
     setCode("");
-    setFinishId("");
+    setSelectedPairs([]);
     setDescription("");
     setError("");
   };
@@ -80,26 +103,27 @@ const SeriesTab: React.FC = () => {
       setError("Series code is required");
       return;
     }
-    if (!finishId) {
-      setError("Select a parent finish");
+    if (selectedPairs.length === 0) {
+      setError("Select at least one finish–size pair");
       return;
     }
     const duplicate = seriesList.some(
-      (s) =>
-        s.id !== editing?.id &&
-        s.finishId === finishId &&
-        s.code.toUpperCase() === trimmed,
+      (s) => s.id !== editing?.id && s.code.toUpperCase() === trimmed,
     );
     if (duplicate) {
-      setError("A series with this code already exists under the selected finish");
+      setError("A series with this code already exists");
       return;
     }
 
     if (editing) {
-      updateSeries(editing.id, { code: trimmed, finishId, description });
+      updateSeries(editing.id, {
+        code: trimmed,
+        finishSizePairs: selectedPairs,
+        description,
+      });
       toast.success("Series updated");
     } else {
-      addSeries(trimmed, finishId, description || undefined);
+      addSeries(trimmed, selectedPairs, description || undefined);
       toast.success("Series added");
     }
     closeDialog();
@@ -133,7 +157,7 @@ const SeriesTab: React.FC = () => {
             <thead className="bg-nl-50 text-left text-xs font-semibold text-nl-500 uppercase">
               <tr>
                 <th className="px-4 py-3">Series Code</th>
-                <th className="px-4 py-3">Finish</th>
+                <th className="px-4 py-3">Finish–Size Pairs</th>
                 <th className="px-4 py-3">Description</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -144,7 +168,14 @@ const SeriesTab: React.FC = () => {
                 <tr key={s.id} className="hover:bg-nl-50/60">
                   <td className="px-4 py-3 font-semibold text-nl-900">{s.code}</td>
                   <td className="px-4 py-3 text-nl-600">
-                    {finishMap[s.finishId] ?? "—"}
+                    {s.finishSizePairs.length === 0
+                      ? "—"
+                      : s.finishSizePairs.map((p, i) => (
+                          <span key={i}>
+                            {finishMap[p.finishId] ?? "?"} / {sizeMap[p.sizeId] ?? "?"}
+                            {i < s.finishSizePairs.length - 1 ? ", " : ""}
+                          </span>
+                        ))}
                   </td>
                   <td className="px-4 py-3 text-nl-500">
                     {s.description || <span className="text-nl-300">—</span>}
@@ -174,11 +205,11 @@ const SeriesTab: React.FC = () => {
         open={adding || editing !== null}
         onClose={closeDialog}
         title={editing ? "Edit Series" : "Add Series"}
-        subtitle="Link a series code to a parent finish"
+        subtitle="Link a series code to finish–size pairs"
         primaryAction={{
           label: editing ? "Save" : "Add Series",
           onClick: handleSave,
-          disabled: code.trim() === "" || !finishId,
+          disabled: code.trim() === "" || selectedPairs.length === 0,
         }}
         secondaryAction={{ label: "Cancel", onClick: closeDialog }}
       >
@@ -196,20 +227,30 @@ const SeriesTab: React.FC = () => {
 
           <div>
             <label className="mb-1.5 block text-xs font-medium text-nl-700">
-              Parent finish
+              Finish–Size Pairs
             </label>
-            <select
-              value={finishId}
-              onChange={(e) => setFinishId(e.target.value)}
-              className="h-10 w-full rounded-xl border border-nl-200 bg-white px-3 text-sm text-nl-900 focus:border-pl-500 focus:ring-2 focus:ring-pl-500/30 focus:outline-none"
-            >
-              {finishes.length === 0 && <option value="">No finishes available</option>}
-              {finishes.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
-                </option>
-              ))}
-            </select>
+            <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-nl-200 bg-white p-3">
+              {finishes.length === 0 ? (
+                <p className="text-xs text-nl-400">No finishes available</p>
+              ) : (
+                finishes.map((f) =>
+                  f.sizeIds.map((sizeId) => (
+                    <label
+                      key={`${f.id}-${sizeId}`}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-nl-700 hover:bg-nl-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={hasPair(f.id, sizeId)}
+                        onChange={() => togglePair(f.id, sizeId)}
+                        className="accent-pl-600"
+                      />
+                      {f.name} / {sizeMap[sizeId] ?? sizeId}
+                    </label>
+                  )),
+                )
+              )}
+            </div>
           </div>
 
           <Input
