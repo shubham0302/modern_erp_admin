@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+  font-family:
+    Urbanist,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    Roboto,
+    sans-serif;
+  letter-spacing: 0.035em;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #fafafa;
+  color: var(--nl-800);
+  overscroll-behavior-y: none;
+}
+
+@layer base {
+  h1 {
+    @apply text-3xl font-bold;
+  }
+  h2 {
+    @apply text-2xl font-semibold;
+  }
+  h3 {
+    @apply text-xl font-semibold;
+  }
+  h4 {
+    @apply text-lg font-semibold;
+  }
+  p,
+  a {
+    @apply text-sm;
+  }
+  .card {
+    @apply rounded-[2rem] bg-white shadow-xs;
+  }
+  .card--soft {
+    @apply rounded-[2rem] bg-white shadow-xs;
+  }
+}
+
+.page-enter {
+  animation: pageEnter 0.3s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::selection {
+  background: var(--pl-400);
+  color: var(--nl-50);
+}
+
+/* Scrollbar polish */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--nl-300);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--nl-400);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+:root {
+  /* Primary (light) — sourced from modern_erp_portal */
+  --pl-50: #fff4eb;
+  --pl-100: #ffe0c2;
+  --pl-200: #ffcc99;
+  --pl-300: #ffb870;
+  --pl-400: #ff993e;
+  --pl-500: #ff800e;
+  --pl-600: #e6730d;
+  --pl-700: #cc660b;
+  --pl-800: #994d08;
+  --pl-900: #663305;
+
+  /* Neutral (light) */
+  --nl-50: #f6f6f6;
+  --nl-100: #eeeeee;
+  --nl-200: #e2e2e2;
+  --nl-300: #cccccc;
+  --nl-400: #999999;
+  --nl-500: #8d8d8d;
+  --nl-600: #666666;
+  --nl-700: #404040;
+  --nl-800: #202020;
+  --nl-900: #111111;
+
+  /* Danger / Success */
+  --dl-400: #d83838;
+  --dl-500: #c62828;
+  --dl-600: #ae2626;
+  --sl-400: #5fd679;
+  --sl-500: #41c95f;
+  --sl-600: #32b04e;
+
+  /* Chart tokens */
+  --t-violet: #9972ff;
+  --t-blue: #76caff;
+  --t-indigo: #2e55e5;
+  --t-amber: #ff8346;
+  --t-pink: #bf2f52;
+  --t-peach: #ff95ac;
+  --t-yellow: #ffc867;
+  --t-green: #5ed1b2;
+  --t-gray: #363840;
+  --t-orange: #ff6041;
+  --t-purple: #f392dd;
+}
+
+@theme inline {
+  --color-pl-50: var(--pl-50);
+  --color-pl-100: var(--pl-100);
+  --color-pl-200: var(--pl-200);
+  --color-pl-300: var(--pl-300);
+  --color-pl-400: var(--pl-400);
+  --color-pl-500: var(--pl-500);
+  --color-pl-600: var(--pl-600);
+  --color-pl-700: var(--pl-700);
+  --color-pl-800: var(--pl-800);
+  --color-pl-900: var(--pl-900);
+
+  --color-nl-50: var(--nl-50);
+  --color-nl-100: var(--nl-100);
+  --color-nl-200: var(--nl-200);
+  --color-nl-300: var(--nl-300);
+  --color-nl-400: var(--nl-400);
+  --color-nl-500: var(--nl-500);
+  --color-nl-600: var(--nl-600);
+  --color-nl-700: var(--nl-700);
+  --color-nl-800: var(--nl-800);
+  --color-nl-900: var(--nl-900);
+
+  --color-dl-400: var(--dl-400);
+  --color-dl-500: var(--dl-500);
+  --color-dl-600: var(--dl-600);
+
+  --color-sl-400: var(--sl-400);
+  --color-sl-500: var(--sl-500);
+  --color-sl-600: var(--sl-600);
+
+  --color-t-violet: var(--t-violet);
+  --color-t-blue: var(--t-blue);
+  --color-t-indigo: var(--t-indigo);
+  --color-t-amber: var(--t-amber);
+  --color-t-pink: var(--t-pink);
+  --color-t-peach: var(--t-peach);
+  --color-t-yellow: var(--t-yellow);
+  --color-t-green: var(--t-green);
+  --color-t-gray: var(--t-gray);
+  --color-t-orange: var(--t-orange);
+  --color-t-purple: var(--t-purple);
+}
