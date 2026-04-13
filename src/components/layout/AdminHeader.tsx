@@ -86,8 +86,10 @@ const NavTabs: React.FC<{
     ) as HTMLElement | null;
 
     if (activeEl) {
-      indicator.style.left = `${activeEl.offsetLeft}px`;
-      indicator.style.width = `${activeEl.offsetWidth}px`;
+      const containerRect = container.getBoundingClientRect();
+      const activeRect = activeEl.getBoundingClientRect();
+      indicator.style.left = `${activeRect.left - containerRect.left}px`;
+      indicator.style.width = `${activeRect.width}px`;
 
       if (!hasInitialized.current) {
         hasInitialized.current = true;
