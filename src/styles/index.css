@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 * {
   box-sizing: border-box;
   font-family:
@@ -20,9 +22,13 @@ body,
 
 body {
   margin: 0;
-  background: #fafafa;
+  background: var(--nl-50);
   color: var(--nl-800);
   overscroll-behavior-y: none;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 @layer base {
@@ -132,6 +138,67 @@ body {
   --t-gray: #363840;
   --t-orange: #ff6041;
   --t-purple: #f392dd;
+}
+
+html.dark {
+  /* Invert neutrals so bg-nl-50 becomes dark, text-nl-800 becomes light */
+  --nl-50: #111111;
+  --nl-100: #1a1a1a;
+  --nl-200: #262626;
+  --nl-300: #3d3d3d;
+  --nl-400: #6b6b6b;
+  --nl-500: #8d8d8d;
+  --nl-600: #b5b5b5;
+  --nl-700: #d4d4d4;
+  --nl-800: #ededed;
+  --nl-900: #f6f6f6;
+
+  /* Soft primary tints become dim brand washes on dark */
+  --pl-50: #2a1a0a;
+  --pl-100: #3a2410;
+  --pl-200: #5a3616;
+}
+
+/* Badges / subtle tint utilities that use tailwind color-* shades need
+   their emerald/pl etc. pills dimmed on dark so they don't scream. */
+html.dark .bg-emerald-100 {
+  background-color: #0f2e20;
+}
+html.dark .text-emerald-700 {
+  color: #5fd693;
+}
+html.dark .bg-rose-50 {
+  background-color: #2a0f14;
+}
+html.dark .text-rose-600 {
+  color: #f87171;
+}
+
+/* Remap hard-coded white surfaces to a dark surface token in dark mode */
+html.dark .bg-white {
+  background-color: #1e1e1e;
+}
+
+/* Keep overlays, pills, and buttons that set text-white against coloured
+   backgrounds (e.g. bg-pl-500) genuinely white in dark mode. */
+
+/* Soften shadows on dark surfaces so edges stay visible */
+html.dark .shadow-xs,
+html.dark .shadow-sm,
+html.dark .shadow-md,
+html.dark .shadow-lg {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Dialog / overlay backdrops — force dark regardless of palette flip */
+html.dark .bg-nl-900\/50 {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Tables / soft sections that use bg-nl-50 — give them a slightly lifted
+   dark surface so rows are distinguishable from the page bg. */
+html.dark .bg-nl-50 {
+  background-color: #181818;
 }
 
 @theme inline {

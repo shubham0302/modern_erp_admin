@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, Clock, Users, MapPin, User, Plus, Download } from "lucide-react";
+import { Clock, Users, MapPin, User } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                              */
@@ -75,7 +75,7 @@ const STATUS_CONFIG = {
     text: "text-pl-700",
     ringColor: "#ff800e",
     actionLabel: "Mark Ready",
-    actionClass: "bg-[#f5c518] text-nl-900 hover:bg-[#e0b416]",
+    actionClass: "bg-[#f5c518] text-[#202020] hover:bg-[#e0b416]",
   },
   ready: {
     label: "Ready",
@@ -83,7 +83,7 @@ const STATUS_CONFIG = {
     text: "text-emerald-700",
     ringColor: "#22c55e",
     actionLabel: "Mark Complete",
-    actionClass: "bg-nl-900 text-white hover:bg-nl-800",
+    actionClass: "bg-pl-500 text-white hover:bg-pl-600",
   },
   pending: {
     label: "Pending",
@@ -120,7 +120,7 @@ const CircularTimer: React.FC<{ time: string; color: string; size?: number }> = 
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#f0f0f0"
+          stroke="var(--nl-200)"
           strokeWidth={strokeWidth}
         />
         <circle
@@ -169,7 +169,7 @@ const CompletionCard: React.FC<{
 }> = ({ completed, total }) => {
   const pct = Math.round((completed / total) * 100);
   return (
-    <div className="card flex flex-col justify-center px-6 py-5 bg-[#fffbf0]">
+    <div className="card flex flex-col justify-center bg-[#fffbf0] px-6 py-5 dark:bg-[#2a2413]">
       <p className="text-xs font-semibold text-nl-700">Today Order Complete</p>
       <div className="mt-2 flex items-baseline gap-1">
         <span className="text-3xl font-bold text-nl-900">{completed}</span>
@@ -289,20 +289,6 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
 const DashboardPage: React.FC = () => {
   return (
     <div className="page-enter space-y-6">
-      {/* Top row: KPIs + Add button */}
-      <div className="flex items-center justify-between">
-        <div /> {/* spacer */}
-        <div className="flex items-center gap-2">
-          <button className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-nl-200 bg-white px-4 py-2.5 text-sm font-medium text-nl-600 transition-colors hover:bg-nl-50">
-            <Download size={16} />
-          </button>
-          <button className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-pl-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-pl-600">
-            <Plus size={16} />
-            Add new Order
-          </button>
-        </div>
-      </div>
-
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
@@ -341,14 +327,6 @@ const DashboardPage: React.FC = () => {
       {/* Active Orders Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-bold text-nl-900">Active Order</h3>
-        <div className="flex items-center gap-2">
-          <button className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-nl-200 bg-white text-nl-500 transition-colors hover:bg-nl-50">
-            <Search size={16} />
-          </button>
-          <button className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-nl-200 bg-white text-nl-500 transition-colors hover:bg-nl-50">
-            <SlidersHorizontal size={16} />
-          </button>
-        </div>
       </div>
 
       {/* Order Cards Grid */}

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, ChevronDown } from "lucide-react";
+import { Bell, Calendar, ChevronDown, LogOut, User } from "lucide-react";
 import { NAV_SECTIONS, type NavItem } from "@/constants/navItems";
 import { cn } from "@/utils/cn";
 
@@ -215,6 +215,93 @@ const NavTabDropdown: React.FC<{
 };
 
 /* ------------------------------------------------------------------ */
+/*  Profile dropdown                                                   */
+/* ------------------------------------------------------------------ */
+
+const ProfileMenu: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex cursor-pointer items-center gap-2 rounded-full bg-white py-1 pr-3 pl-1 shadow-xs transition-colors hover:bg-nl-50"
+      >
+        <img
+          src="https://api.dicebear.com/9.x/avataaars/svg?seed=Admin"
+          alt="avatar"
+          className="size-8 rounded-full bg-nl-200"
+        />
+        <span className="hidden text-xs font-semibold text-nl-700 lg:block">
+          Super Admin
+        </span>
+        <svg
+          className={cn(
+            "hidden size-3 text-nl-400 transition-transform lg:block",
+            open && "rotate-180",
+          )}
+          viewBox="0 0 12 12"
+          fill="none"
+        >
+          <path
+            d="M3 4.5L6 7.5L9 4.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute top-full right-0 z-50 mt-2 min-w-52 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-nl-100">
+          <div className="flex items-center gap-2.5 px-3 py-2">
+            <img
+              src="https://api.dicebear.com/9.x/avataaars/svg?seed=Admin"
+              alt="avatar"
+              className="size-9 rounded-full bg-nl-200"
+            />
+            <div className="leading-tight">
+              <div className="text-[13px] font-semibold text-nl-800">
+                Super Admin
+              </div>
+              <div className="text-[11px] text-nl-500">admin@modernerp.com</div>
+            </div>
+          </div>
+          <div className="my-1 h-px bg-nl-100" />
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium text-nl-700 transition-colors hover:bg-nl-100"
+          >
+            <User size={15} className="text-nl-500" />
+            My Profile
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium text-dl-600 transition-colors hover:bg-nl-100"
+          >
+            <LogOut size={15} />
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
 /*  Header                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -233,9 +320,12 @@ const AdminHeader: React.FC = () => {
           <div className="flex size-8 items-center justify-center rounded-[10px] bg-linear-to-br from-pl-500 to-pl-400 shadow-sm">
             <span className="text-sm font-extrabold text-white">M</span>
           </div>
-          <span className="hidden text-[15px] font-bold text-nl-800 sm:block">
-            Modern ERP
-          </span>
+          <div className="hidden leading-tight sm:block">
+            <div className="text-[15px] font-bold text-nl-800">Modern ERP</div>
+            <div className="text-[10px] font-semibold tracking-wider text-pl-600 uppercase">
+              Admin Console
+            </div>
+          </div>
         </Link>
 
         {/* Right: Nav Tabs + Bell + Profile */}
@@ -246,35 +336,18 @@ const AdminHeader: React.FC = () => {
             <Bell className="size-4.5 text-nl-500" />
           </button>
 
-          <button className="flex cursor-pointer items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 shadow-xs transition-colors hover:bg-nl-50">
-            <img
-              src="https://api.dicebear.com/9.x/avataaars/svg?seed=Admin"
-              alt="avatar"
-              className="size-8 rounded-full bg-nl-200"
-            />
-            <span className="hidden text-xs font-semibold text-nl-700 lg:block">
-              Super Admin
-            </span>
-            <svg
-              className="hidden size-3 text-nl-400 lg:block"
-              viewBox="0 0 12 12"
-              fill="none"
-            >
-              <path
-                d="M3 4.5L6 7.5L9 4.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          <ProfileMenu />
         </div>
       </nav>
 
       {/* Page title row */}
-      <div className="px-4 pt-5 pb-2 sm:px-6 md:px-10 lg:px-8">
+      <div className="flex items-center justify-between px-4 pt-5 pb-6 sm:px-6 md:px-10 lg:px-8">
         <h1 className="text-2xl font-bold text-nl-800">{title}</h1>
+        {pathname === "/dashboard" && (
+          <button className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-white shadow-xs transition-colors hover:bg-nl-100">
+            <Calendar className="size-4.5 text-nl-500" />
+          </button>
+        )}
       </div>
     </header>
   );

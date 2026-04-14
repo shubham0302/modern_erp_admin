@@ -9,8 +9,8 @@ function AppLayout() {
   return (
     <div className="flex h-dvh w-dvw flex-col bg-nl-50">
       <AdminHeader />
-      <main className="min-w-0 flex-1 overflow-auto">
-        <div className="w-full px-4 pt-0 pb-6 sm:px-6 md:px-10 lg:px-8">
+      <main className="min-h-0 flex-1 overflow-auto">
+        <div className="w-full px-4 pb-6 sm:px-6 md:px-8">
           <Outlet />
         </div>
       </main>
