@@ -14,6 +14,13 @@
   letter-spacing: 0.035em;
 }
 
+/* Keep the password mask aligned with the rest of the form: same font
+   family as other inputs, just slightly wider tracking so the dots are
+   spaced enough to read while matching the visible text size. */
+input[type="password"] {
+  letter-spacing: 0.08em;
+}
+
 html,
 body,
 #root {

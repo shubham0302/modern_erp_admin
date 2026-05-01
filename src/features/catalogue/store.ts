@@ -1,13 +1,13 @@
 import { create } from "zustand";
-import type { DesignCode, Finish, FinishSizePair, Series, TileSize } from "./types";
+import type { LegacyDesignCode as DesignCode, LegacyFinish, FinishSizePair, LegacySeries, TileSize } from "./types";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => Date.now();
 
 interface CatalogueState {
   sizes: TileSize[];
-  finishes: Finish[];
-  series: Series[];
+  finishes: LegacyFinish[];
+  series: LegacySeries[];
   designCodes: DesignCode[];
 
   addSize: (label: string) => void;
@@ -15,11 +15,11 @@ interface CatalogueState {
   deleteSize: (id: string) => void;
 
   addFinish: (name: string, sizeIds: string[]) => void;
-  updateFinish: (id: string, patch: Partial<Omit<Finish, "id" | "createdAt">>) => void;
+  updateFinish: (id: string, patch: Partial<Omit<LegacyFinish, "id" | "createdAt">>) => void;
   deleteFinish: (id: string) => void;
 
   addSeries: (code: string, finishSizePairs: FinishSizePair[], description?: string) => void;
-  updateSeries: (id: string, patch: Partial<Omit<Series, "id" | "createdAt">>) => void;
+  updateSeries: (id: string, patch: Partial<Omit<LegacySeries, "id" | "createdAt">>) => void;
   deleteSeries: (id: string) => void;
 
   addDesignCode: (code: string, seriesId: string, applicablePairs: FinishSizePair[], thumbnailUrl?: string) => void;
@@ -36,7 +36,7 @@ const seedSizes: TileSize[] = [
   { id: "sz_60120", label: "60x120", active: true, createdAt: now() },
 ];
 
-const seedFinishes: Finish[] = [
+const seedLegacyFinishes: LegacyFinish[] = [
   {
     id: "fn_glossy",
     name: "Glossy",
@@ -53,7 +53,7 @@ const seedFinishes: Finish[] = [
   },
 ];
 
-const seedSeries: Series[] = [
+const seedSeries: LegacySeries[] = [
   {
     id: "sr_gl",
     code: "GL",
@@ -140,7 +140,7 @@ const seedDesignCodes: DesignCode[] = [
 
 export const useCatalogueStore = create<CatalogueState>((set) => ({
   sizes: seedSizes,
-  finishes: seedFinishes,
+  finishes: seedLegacyFinishes,
   series: seedSeries,
   designCodes: seedDesignCodes,
 

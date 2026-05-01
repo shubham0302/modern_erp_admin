@@ -10,7 +10,7 @@ if (!rootElement.innerHTML) {
   root.render(
     <>
       <RouterProvider router={router} />
-      <Toaster position="top-right" richColors visibleToasts={6} />
+      <Toaster position="bottom-right" richColors visibleToasts={6} />
     </>,
   );
 }

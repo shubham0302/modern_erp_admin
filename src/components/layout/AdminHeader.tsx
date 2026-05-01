@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, Calendar, ChevronDown, LogOut, User } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { ArrowLeft, Bell, Calendar, ChevronDown, LogOut, User } from "lucide-react";
 import { NAV_SECTIONS, type NavItem } from "@/constants/navItems";
 import { cn } from "@/utils/cn";
+import { useAuthStore } from "@/features/auth/store";
+import { logout } from "@/features/auth/api";
+import { clearTokens } from "@/features/auth/storage";
 
 /* ------------------------------------------------------------------ */
 /*  Page meta                                                          */
@@ -29,22 +32,33 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
     title: "Design Codes",
     subtitle: "Individual SKU codes under a series.",
   },
-  "/orders": { title: "Orders", subtitle: "Track, fulfil and refund customer orders." },
   "/inventory": {
     title: "Inventory",
     subtitle: "Warehouse stock, batches and movement history.",
   },
-  "/customers": {
-    title: "Customers",
-    subtitle: "B2B and B2C customer directory with credit profiles.",
+  "/production": {
+    title: "Production",
+    subtitle: "Production runs, batches and manufacturing schedules.",
   },
-  "/reports": {
-    title: "Reports",
-    subtitle: "Sales, GST, stock valuation and custom exports.",
+  "/order": {
+    title: "Order",
+    subtitle: "Track, fulfil and refund customer orders.",
   },
-  "/settings": {
-    title: "Settings",
-    subtitle: "Organisation profile, users, roles and billing.",
+  "/finance": {
+    title: "Finance",
+    subtitle: "Invoices, payments, GST and accounting overview.",
+  },
+  "/depot": {
+    title: "Depot",
+    subtitle: "Warehouses, depots and inter-depot transfers.",
+  },
+  "/staff/users": {
+    title: "Staff",
+    subtitle: "Admin staff and operators.",
+  },
+  "/staff/roles": {
+    title: "Roles & Permissions",
+    subtitle: "Define roles and grant module-level access.",
   },
 };
 
@@ -221,6 +235,9 @@ const NavTabDropdown: React.FC<{
 const ProfileMenu: React.FC = () => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const admin = useAuthStore((s) => s.admin);
+  const clearAuth = useAuthStore((s) => s.clear);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -230,6 +247,20 @@ const ProfileMenu: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const handleLogout = () => {
+    setOpen(false);
+    // Fire-and-forget; we log out locally regardless of API response.
+    void logout().catch(() => {});
+    clearTokens();
+    clearAuth();
+    navigate({ to: "/login" });
+  };
+
+  const displayName = admin?.name ?? "Admin";
+  const displayEmail = admin?.email ?? "";
+  const avatarSeed = encodeURIComponent(displayName);
+  const avatarUrl = `https://api.dicebear.com/9.x/avataaars/svg?seed=${avatarSeed}`;
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -238,12 +269,12 @@ const ProfileMenu: React.FC = () => {
         className="flex cursor-pointer items-center gap-2 rounded-full bg-white py-1 pr-3 pl-1 shadow-xs transition-colors hover:bg-nl-50"
       >
         <img
-          src="https://api.dicebear.com/9.x/avataaars/svg?seed=Admin"
+          src={avatarUrl}
           alt="avatar"
           className="size-8 rounded-full bg-nl-200"
         />
         <span className="hidden text-xs font-semibold text-nl-700 lg:block">
-          Super Admin
+          {displayName}
         </span>
         <svg
           className={cn(
@@ -267,15 +298,17 @@ const ProfileMenu: React.FC = () => {
         <div className="absolute top-full right-0 z-50 mt-2 min-w-52 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-nl-100">
           <div className="flex items-center gap-2.5 px-3 py-2">
             <img
-              src="https://api.dicebear.com/9.x/avataaars/svg?seed=Admin"
+              src={avatarUrl}
               alt="avatar"
               className="size-9 rounded-full bg-nl-200"
             />
             <div className="leading-tight">
               <div className="text-[13px] font-semibold text-nl-800">
-                Super Admin
+                {displayName}
               </div>
-              <div className="text-[11px] text-nl-500">admin@modernerp.com</div>
+              {displayEmail && (
+                <div className="text-[11px] text-nl-500">{displayEmail}</div>
+              )}
             </div>
           </div>
           <div className="my-1 h-px bg-nl-100" />
@@ -289,7 +322,7 @@ const ProfileMenu: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={handleLogout}
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium text-dl-600 transition-colors hover:bg-nl-100"
           >
             <LogOut size={15} />
@@ -343,11 +376,33 @@ const AdminHeader: React.FC = () => {
       {/* Page title row */}
       <div className="flex items-center justify-between px-4 pt-5 pb-6 sm:px-6 md:px-10 lg:px-8">
         <h1 className="text-2xl font-bold text-nl-800">{title}</h1>
-        {pathname === "/dashboard" && (
-          <button className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-white shadow-xs transition-colors hover:bg-nl-100">
-            <Calendar className="size-4.5 text-nl-500" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {pathname.startsWith("/staff/users/") &&
+            pathname !== "/staff/users" && (
+              <Link
+                to="/staff/users"
+                className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 text-xs font-medium text-nl-700 shadow-xs transition-colors hover:bg-nl-100 hover:text-nl-900"
+              >
+                <ArrowLeft size={14} />
+                Back
+              </Link>
+            )}
+          {pathname.startsWith("/staff/roles/") &&
+            pathname !== "/staff/roles" && (
+              <Link
+                to="/staff/roles"
+                className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 text-xs font-medium text-nl-700 shadow-xs transition-colors hover:bg-nl-100 hover:text-nl-900"
+              >
+                <ArrowLeft size={14} />
+                Back
+              </Link>
+            )}
+          {pathname === "/dashboard" && (
+            <button className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-white shadow-xs transition-colors hover:bg-nl-100">
+              <Calendar className="size-4.5 text-nl-500" />
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );

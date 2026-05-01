@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { useCatalogueStore } from "../store";
-import type { Finish } from "../types";
+import type { LegacyFinish as Finish } from "../types";
 import Toolbar from "../components/Toolbar";
 import EmptyState from "../components/EmptyState";
 import RowActions from "../components/RowActions";

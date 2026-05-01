@@ -5,11 +5,29 @@ import Dialog from "@/components/ui/Dialog";
 interface ToggleSwitchProps {
   active: boolean;
   label: string;
-  onToggle: () => void;
+  onToggle: () => void | Promise<void>;
 }
 
 const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ active, label, onToggle }) => {
   const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    try {
+      setLoading(true);
+      await onToggle();
+      setConfirming(false);
+    } catch {
+      // parent surfaces the error toast; keep dialog open so user can retry
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (loading) return;
+    setConfirming(false);
+  };
 
   return (
     <>
@@ -32,17 +50,19 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ active, label, onToggle }) 
 
       <Dialog
         open={confirming}
-        onClose={() => setConfirming(false)}
+        onClose={handleClose}
         title={active ? "Deactivate item?" : "Activate item?"}
         subtitle={`Are you sure you want to ${active ? "deactivate" : "activate"} "${label}"?`}
         primaryAction={{
           label: active ? "Deactivate" : "Activate",
-          onClick: () => {
-            onToggle();
-            setConfirming(false);
-          },
+          onClick: handleConfirm,
+          loading,
         }}
-        secondaryAction={{ label: "Cancel", onClick: () => setConfirming(false) }}
+        secondaryAction={{
+          label: "Cancel",
+          onClick: handleClose,
+          disabled: loading,
+        }}
         destructive={active}
       >
         <p className="text-sm text-nl-600">

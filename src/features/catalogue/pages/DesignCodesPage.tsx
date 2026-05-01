@@ -1,35 +1,85 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import { toast } from "sonner";
-import { Check, ChevronDown, Plus, Search } from "lucide-react";
-import { useCatalogueStore } from "../store";
-import type { DesignCode, FinishSizePair } from "../types";
+import { Check, ChevronDown, Search, X } from "lucide-react";
+import { approveDesign, listDesigns, listSeries, rejectDesign } from "../api";
+import type { Design, DesignStatus, Series } from "../types";
+import type { ApiError } from "@/lib/api/types";
 import EmptyState from "../components/EmptyState";
-import Button from "@/components/ui/Button";
-import RowActions from "../components/RowActions";
-import ToggleSwitch from "../components/ToggleSwitch";
 import Dialog from "@/components/ui/Dialog";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Input from "@/components/ui/Input";
 import { cn } from "@/utils/cn";
 
-const pairKey = (p: FinishSizePair) => `${p.finishId}::${p.sizeId}`;
+const apiErrorMessage = (err: unknown, fallback: string): string =>
+  (axios.isAxiosError(err) &&
+    (err.response?.data as ApiError | undefined)?.error?.message) ||
+  fallback;
+
+const formatDateTime = (iso: string) => {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+};
+
+const STATUS_PILL: Record<DesignStatus, string> = {
+  pending: "bg-amber-50 text-amber-700",
+  approved: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-rose-50 text-rose-700",
+};
+
+const STATUS_LABEL: Record<DesignStatus, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+};
 
 const DesignCodesPage: React.FC = () => {
-  const designCodes = useCatalogueStore((s) => s.designCodes);
-  const seriesList = useCatalogueStore((s) => s.series);
-  const finishes = useCatalogueStore((s) => s.finishes);
-  const sizes = useCatalogueStore((s) => s.sizes);
-  const addDesignCode = useCatalogueStore((s) => s.addDesignCode);
-  const updateDesignCode = useCatalogueStore((s) => s.updateDesignCode);
-  const deleteDesignCode = useCatalogueStore((s) => s.deleteDesignCode);
+  const [designs, setDesigns] = useState<Design[]>([]);
+  const [seriesList, setSeriesList] = useState<Series[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [editing, setEditing] = useState<DesignCode | null>(null);
-  const [adding, setAdding] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<DesignCode | null>(null);
   const [seriesFilter, setSeriesFilter] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [actionTarget, setActionTarget] = useState<{
+    design: Design;
+    action: "approve" | "reject";
+  } | null>(null);
+  const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState("");
+  const [submittingAction, setSubmittingAction] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([listDesigns(), listSeries()])
+      .then(([designsRes, seriesRes]) => {
+        if (cancelled) return;
+        setDesigns(designsRes.data);
+        setSeriesList(seriesRes.data);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        toast.error(apiErrorMessage(err, "Failed to load designs"));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -41,150 +91,68 @@ const DesignCodesPage: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const [code, setCode] = useState("");
-  const [seriesId, setSeriesId] = useState("");
-  const [selectedPairs, setSelectedPairs] = useState<FinishSizePair[]>([]);
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [error, setError] = useState("");
-
-  const seriesMap = useMemo(
-    () => Object.fromEntries(seriesList.map((s) => [s.id, s])),
-    [seriesList],
-  );
-  const finishMap = useMemo(
-    () => Object.fromEntries(finishes.map((f) => [f.id, f.name])),
-    [finishes],
-  );
-  const sizeMap = useMemo(
-    () => Object.fromEntries(sizes.map((s) => [s.id, s.label])),
-    [sizes],
-  );
-
-  const selectedKeys = useMemo(
-    () => new Set(selectedPairs.map(pairKey)),
-    [selectedPairs],
-  );
-
-  const parentSeriesPairs = useMemo(() => {
-    if (!seriesId) return [];
-    return seriesMap[seriesId]?.finishSizePairs ?? [];
-  }, [seriesId, seriesMap]);
-
   const filtered = useMemo(() => {
-    return designCodes.filter((d) => {
-      if (seriesFilter && d.seriesId !== seriesFilter) return false;
+    return designs.filter((d) => {
+      if (seriesFilter && d.series.id !== seriesFilter) return false;
       if (!search) return true;
       const q = search.toLowerCase();
-      const sr = seriesMap[d.seriesId];
       return (
-        d.code.toLowerCase().includes(q) ||
-        (sr?.code ?? "").toLowerCase().includes(q)
+        d.name.toLowerCase().includes(q) ||
+        d.series.name.toLowerCase().includes(q)
       );
     });
-  }, [designCodes, search, seriesFilter, seriesMap]);
+  }, [designs, search, seriesFilter]);
 
-  const openAdd = () => {
-    if (seriesList.length === 0) {
-      toast.error("Add a series first before creating a design code");
+  const openActionDialog = (design: Design, action: "approve" | "reject") => {
+    setActionTarget({ design, action });
+    setReason("");
+    setReasonError("");
+  };
+
+  const closeActionDialog = () => {
+    if (submittingAction) return;
+    setActionTarget(null);
+    setReason("");
+    setReasonError("");
+  };
+
+  const handleConfirmAction = async () => {
+    if (!actionTarget) return;
+    const trimmed = reason.trim();
+    if (actionTarget.action === "reject" && !trimmed) {
+      setReasonError("Reason is required");
       return;
     }
-    setAdding(true);
-    setCode("");
-    setSeriesId(seriesList[0]?.id ?? "");
-    setSelectedPairs([]);
-    setThumbnailUrl("");
-    setError("");
-  };
-
-  const openEdit = (d: DesignCode) => {
-    setEditing(d);
-    setCode(d.code);
-    setSeriesId(d.seriesId);
-    setSelectedPairs(d.applicablePairs);
-    setThumbnailUrl(d.thumbnailUrl ?? "");
-    setError("");
-  };
-
-  const closeDialog = () => {
-    setAdding(false);
-    setEditing(null);
-    setCode("");
-    setSeriesId("");
-    setSelectedPairs([]);
-    setThumbnailUrl("");
-    setError("");
-  };
-
-  const togglePair = (pair: FinishSizePair) => {
-    const key = pairKey(pair);
-    if (selectedKeys.has(key)) {
-      setSelectedPairs((prev) => prev.filter((p) => pairKey(p) !== key));
-    } else {
-      setSelectedPairs((prev) => [...prev, pair]);
+    setSubmittingAction(true);
+    try {
+      if (actionTarget.action === "approve") {
+        await approveDesign(actionTarget.design.id);
+        toast.success(`${actionTarget.design.name} approved`);
+      } else {
+        await rejectDesign(actionTarget.design.id, trimmed);
+        toast.success(`${actionTarget.design.name} rejected`);
+      }
+      const res = await listDesigns();
+      setDesigns(res.data);
+      setActionTarget(null);
+      setReason("");
+      setReasonError("");
+    } catch (err) {
+      toast.error(
+        apiErrorMessage(
+          err,
+          actionTarget.action === "approve"
+            ? "Failed to approve design"
+            : "Failed to reject design",
+        ),
+      );
+    } finally {
+      setSubmittingAction(false);
     }
   };
 
-  const handleSeriesChange = (newSeriesId: string) => {
-    setSeriesId(newSeriesId);
-    setSelectedPairs([]);
-  };
-
-  const handleSave = () => {
-    const trimmed = code.trim();
-    if (!trimmed) {
-      setError("Design code is required");
-      return;
-    }
-    if (!seriesId) {
-      setError("Select a parent series");
-      return;
-    }
-    if (selectedPairs.length === 0) {
-      setError("Select at least one finish–size pair");
-      return;
-    }
-    const duplicate = designCodes.some(
-      (d) =>
-        d.id !== editing?.id &&
-        d.seriesId === seriesId &&
-        d.code.toLowerCase() === trimmed.toLowerCase(),
-    );
-    if (duplicate) {
-      setError("A design with this code already exists under the selected series");
-      return;
-    }
-
-    if (editing) {
-      updateDesignCode(editing.id, {
-        code: trimmed,
-        seriesId,
-        applicablePairs: selectedPairs,
-        thumbnailUrl: thumbnailUrl || undefined,
-      });
-      toast.success("Design code updated");
-    } else {
-      addDesignCode(trimmed, seriesId, selectedPairs, thumbnailUrl || undefined);
-      toast.success("Design code added");
-    }
-    closeDialog();
-  };
-
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    deleteDesignCode(deleteTarget.id);
-    toast.success(`Deleted design ${deleteTarget.code}`);
-    setDeleteTarget(null);
-  };
-
-  const pairsByFinish = useMemo(() => {
-    const grouped = new Map<string, FinishSizePair[]>();
-    for (const pair of parentSeriesPairs) {
-      const list = grouped.get(pair.finishId) ?? [];
-      list.push(pair);
-      grouped.set(pair.finishId, list);
-    }
-    return grouped;
-  }, [parentSeriesPairs]);
+  const seriesFilterLabel =
+    seriesList.find((s) => s.id === seriesFilter)?.name ?? "All Series";
 
   return (
     <div className="page-enter space-y-6">
@@ -206,11 +174,7 @@ const DesignCodesPage: React.FC = () => {
               onClick={() => setDropdownOpen((v) => !v)}
               className="flex h-9 w-48 cursor-pointer items-center justify-between rounded-xl border border-nl-200 bg-white px-3 text-sm text-nl-900 transition-colors hover:border-nl-300"
             >
-              <span className="truncate">
-                {seriesFilter
-                  ? seriesList.find((s) => s.id === seriesFilter)?.code ?? "All Series"
-                  : "All Series"}
-              </span>
+              <span className="truncate">{seriesFilterLabel}</span>
               <ChevronDown
                 size={14}
                 className={cn(
@@ -220,10 +184,13 @@ const DesignCodesPage: React.FC = () => {
               />
             </button>
             {dropdownOpen && (
-              <div className="absolute left-0 z-20 mt-1 w-48 overflow-hidden rounded-xl border border-nl-200 bg-white py-1.5 shadow-lg">
+              <div className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-xl border border-nl-200 bg-white py-1.5 shadow-lg">
                 <button
                   type="button"
-                  onClick={() => { setSeriesFilter(""); setDropdownOpen(false); }}
+                  onClick={() => {
+                    setSeriesFilter("");
+                    setDropdownOpen(false);
+                  }}
                   className={cn(
                     "flex w-full cursor-pointer items-center px-4 py-2.5 text-left text-sm transition-colors",
                     seriesFilter === ""
@@ -237,7 +204,10 @@ const DesignCodesPage: React.FC = () => {
                   <button
                     key={s.id}
                     type="button"
-                    onClick={() => { setSeriesFilter(s.id); setDropdownOpen(false); }}
+                    onClick={() => {
+                      setSeriesFilter(s.id);
+                      setDropdownOpen(false);
+                    }}
                     className={cn(
                       "flex w-full cursor-pointer items-center px-4 py-2.5 text-left text-sm transition-colors",
                       seriesFilter === s.id
@@ -245,19 +215,19 @@ const DesignCodesPage: React.FC = () => {
                         : "text-nl-700 hover:bg-nl-50",
                     )}
                   >
-                    {s.code}{s.description ? ` — ${s.description}` : ""}
+                    {s.name}
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <Button onClick={openAdd}>
-            <Plus size={16} />
-            Add Design Code
-          </Button>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="size-7 animate-spin rounded-full border-2 border-nl-200 border-t-pl-500" />
+          </div>
+        ) : filtered.length === 0 ? (
           <EmptyState
             title="No design codes"
             description="Design codes represent individual SKUs under a series."
@@ -267,64 +237,97 @@ const DesignCodesPage: React.FC = () => {
             <table className="w-full text-sm">
               <thead className="bg-nl-50 text-left text-xs font-semibold text-nl-500 uppercase">
                 <tr>
-                  <th className="px-4 py-3">Design Code</th>
+                  <th className="px-4 py-3">Design</th>
                   <th className="px-4 py-3">Series</th>
                   <th className="px-4 py-3">Applicable Pairs</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Created</th>
+                  <th className="px-4 py-3">Updated By</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-nl-100">
-                {filtered.map((d) => {
-                  const sr = seriesMap[d.seriesId];
-                  return (
-                    <tr key={d.id} className="hover:bg-nl-50/60">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-nl-100 to-nl-200 text-[11px] font-bold text-nl-500">
-                            {d.code.slice(0, 2)}
-                          </div>
-                          <div className="font-semibold text-nl-900">{d.code}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-nl-600">{sr?.code ?? "—"}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap gap-1">
-                          {d.applicablePairs.length === 0 ? (
-                            <span className="text-xs text-nl-400">—</span>
+                {filtered.map((d) => (
+                  <tr key={d.id} className="hover:bg-nl-50/60">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-linear-to-br from-nl-100 to-nl-200 text-[11px] font-bold text-nl-500">
+                          {d.thumbnailUrl ? (
+                            <img
+                              src={d.thumbnailUrl}
+                              alt={d.name}
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
-                            d.applicablePairs.map((p) => (
-                              <span
-                                key={pairKey(p)}
-                                className="rounded-md bg-nl-100 px-2 py-0.5 text-[11px] font-medium text-nl-600"
-                              >
-                                {finishMap[p.finishId] ?? "?"} /{" "}
-                                {(sizeMap[p.sizeId] ?? "?").replace("x", "×")}
-                              </span>
-                            ))
+                            d.name.slice(0, 2).toUpperCase()
                           )}
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <ToggleSwitch
-                          active={d.active}
-                          label={d.code}
-                          onToggle={() =>
-                            updateDesignCode(d.id, { active: !d.active })
-                          }
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end">
-                          <RowActions
-                            onEdit={() => openEdit(d)}
-                            onDelete={() => setDeleteTarget(d)}
-                          />
+                        <div className="font-semibold text-nl-900">
+                          {d.name}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-nl-600">{d.series.name}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {d.sizeFinishes.length === 0 ? (
+                          <span className="text-xs text-nl-400">—</span>
+                        ) : (
+                          d.sizeFinishes.map((sf) => (
+                            <span
+                              key={sf.id}
+                              className="rounded-md bg-nl-100 px-2 py-0.5 text-[11px] font-medium text-nl-600"
+                            >
+                              {sf.finish.name} / {sf.size.name}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+                          STATUS_PILL[d.status],
+                        )}
+                      >
+                        {STATUS_LABEL[d.status]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-nl-500">
+                      {formatDateTime(d.createdAt)}
+                    </td>
+                    <td className="px-4 py-3 text-nl-700">
+                      {d.updatedByName ?? (
+                        <span className="text-nl-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        {d.status === "pending" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openActionDialog(d, "approve")}
+                              className="rounded-lg p-2 text-nl-500 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
+                              title="Approve"
+                            >
+                              <Check size={15} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openActionDialog(d, "reject")}
+                              className="rounded-lg p-2 text-nl-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                              title="Reject"
+                            >
+                              <X size={15} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -332,106 +335,59 @@ const DesignCodesPage: React.FC = () => {
       </div>
 
       <Dialog
-        open={adding || editing !== null}
-        onClose={closeDialog}
-        title={editing ? "Edit Design Code" : "Add Design Code"}
-        subtitle="Link the SKU code to a series and pick applicable finish–size pairs"
+        open={actionTarget !== null}
+        onClose={closeActionDialog}
+        title={
+          actionTarget?.action === "approve"
+            ? "Approve design?"
+            : "Reject design?"
+        }
+        subtitle={
+          actionTarget
+            ? actionTarget.action === "approve"
+              ? `Approve "${actionTarget.design.name}".`
+              : `Reject "${actionTarget.design.name}". Provide a reason below.`
+            : undefined
+        }
         primaryAction={{
-          label: editing ? "Save" : "Add Design Code",
-          onClick: handleSave,
-          disabled: code.trim() === "" || !seriesId || selectedPairs.length === 0,
+          label: submittingAction
+            ? actionTarget?.action === "approve"
+              ? "Approving…"
+              : "Rejecting…"
+            : actionTarget?.action === "approve"
+              ? "Approve"
+              : "Reject",
+          onClick: handleConfirmAction,
+          disabled:
+            submittingAction ||
+            (actionTarget?.action === "reject" && reason.trim() === ""),
+          loading: submittingAction,
         }}
-        secondaryAction={{ label: "Cancel", onClick: closeDialog }}
+        secondaryAction={{
+          label: "Cancel",
+          onClick: closeActionDialog,
+          disabled: submittingAction,
+        }}
+        destructive={actionTarget?.action === "reject"}
       >
-        <div className="space-y-4">
+        {actionTarget?.action === "reject" ? (
           <Input
-            label="Design code"
-            placeholder="e.g. 4001"
-            value={code}
+            label="Reason"
+            placeholder="e.g. Thumbnail not provided"
+            value={reason}
             onChange={(e) => {
-              setCode(e.target.value);
-              if (error) setError("");
+              setReason(e.target.value);
+              if (reasonError) setReasonError("");
             }}
+            error={reasonError}
             autoFocus
           />
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-nl-700">
-              Parent series
-            </label>
-            <select
-              value={seriesId}
-              onChange={(e) => handleSeriesChange(e.target.value)}
-              className="h-10 w-full rounded-xl border border-nl-200 bg-white px-3 text-sm text-nl-900 focus:border-pl-500 focus:ring-2 focus:ring-pl-500/30 focus:outline-none"
-            >
-              {seriesList.length === 0 && (
-                <option value="">No series available</option>
-              )}
-              {seriesList.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.code}
-                  {s.description ? ` — ${s.description}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {parentSeriesPairs.length > 0 && (
-            <div>
-              <label className="mb-2 block text-xs font-medium text-nl-700">
-                Applicable Finish – Size Pairs
-              </label>
-              <div className="max-h-40 space-y-3 overflow-y-auto">
-                {Array.from(pairsByFinish.entries()).map(([finishId, pairs]) => (
-                  <div key={finishId}>
-                    <div className="mb-1.5 text-[11px] font-semibold text-nl-500 uppercase">
-                      {finishMap[finishId] ?? finishId}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {pairs.map((pair) => {
-                        const selected = selectedKeys.has(pairKey(pair));
-                        return (
-                          <button
-                            key={pairKey(pair)}
-                            type="button"
-                            onClick={() => togglePair(pair)}
-                            className={cn(
-                              "inline-flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all",
-                              selected
-                                ? "border-pl-500 bg-pl-500 text-white"
-                                : "border-nl-200 bg-white text-nl-700 hover:border-pl-400 hover:bg-pl-50",
-                            )}
-                          >
-                            {selected && <Check size={12} strokeWidth={3} />}
-                            {(sizeMap[pair.sizeId] ?? "?").replace("x", "×")}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <Input
-            label="Thumbnail URL (optional)"
-            placeholder="https://…"
-            value={thumbnailUrl}
-            onChange={(e) => setThumbnailUrl(e.target.value)}
-          />
-
-          {error && <p className="text-xs text-rose-600">{error}</p>}
-        </div>
+        ) : (
+          <p className="text-sm text-nl-600">
+            Are you sure you want to approve this design?
+          </p>
+        )}
       </Dialog>
-
-      <ConfirmDialog
-        open={deleteTarget !== null}
-        title="Delete design code?"
-        message={`This will permanently remove design code "${deleteTarget?.code}".`}
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
     </div>
   );
 };

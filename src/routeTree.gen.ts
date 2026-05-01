@@ -9,22 +9,49 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppStaffRouteImport } from './routes/_app/staff'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
-import { Route as AppOrdersRouteImport } from './routes/_app/orders'
+import { Route as AppProductionRouteImport } from './routes/_app/production'
+import { Route as AppOrderRouteImport } from './routes/_app/order'
 import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
+import { Route as AppFinanceRouteImport } from './routes/_app/finance'
+import { Route as AppDepotRouteImport } from './routes/_app/depot'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCatalogueRouteImport } from './routes/_app/catalogue'
+import { Route as AppStaffUsersRouteImport } from './routes/_app/staff/users'
+import { Route as AppStaffRolesRouteImport } from './routes/_app/staff/roles'
 import { Route as AppCatalogueSizesRouteImport } from './routes/_app/catalogue/sizes'
 import { Route as AppCatalogueSeriesRouteImport } from './routes/_app/catalogue/series'
 import { Route as AppCatalogueFinishesRouteImport } from './routes/_app/catalogue/finishes'
 import { Route as AppCatalogueDesignsRouteImport } from './routes/_app/catalogue/designs'
+import { Route as AppStaffUsersIndexRouteImport } from './routes/_app/staff/users/index'
+import { Route as AppStaffRolesIndexRouteImport } from './routes/_app/staff/roles/index'
+import { Route as AppStaffUsersNewRouteImport } from './routes/_app/staff/users/new'
+import { Route as AppStaffUsersStaffIdRouteImport } from './routes/_app/staff/users/$staffId'
+import { Route as AppStaffRolesNewRouteImport } from './routes/_app/staff/roles/new'
+import { Route as AppStaffRolesRoleIdRouteImport } from './routes/_app/staff/roles/$roleId'
+import { Route as AppStaffUsersStaffIdIndexRouteImport } from './routes/_app/staff/users/$staffId/index'
+import { Route as AppStaffRolesRoleIdIndexRouteImport } from './routes/_app/staff/roles/$roleId/index'
+import { Route as AppStaffUsersStaffIdEditRouteImport } from './routes/_app/staff/users/$staffId/edit'
+import { Route as AppStaffRolesRoleIdEditRouteImport } from './routes/_app/staff/roles/$roleId/edit'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppStaffRoute = AppStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -36,14 +63,29 @@ const AppReportsRoute = AppReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOrdersRoute = AppOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
+const AppProductionRoute = AppProductionRouteImport.update({
+  id: '/production',
+  path: '/production',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrderRoute = AppOrderRouteImport.update({
+  id: '/order',
+  path: '/order',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInventoryRoute = AppInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFinanceRoute = AppFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDepotRoute = AppDepotRouteImport.update({
+  id: '/depot',
+  path: '/depot',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -60,6 +102,16 @@ const AppCatalogueRoute = AppCatalogueRouteImport.update({
   id: '/catalogue',
   path: '/catalogue',
   getParentRoute: () => AppRoute,
+} as any)
+const AppStaffUsersRoute = AppStaffUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppStaffRoute,
+} as any)
+const AppStaffRolesRoute = AppStaffRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AppStaffRoute,
 } as any)
 const AppCatalogueSizesRoute = AppCatalogueSizesRouteImport.update({
   id: '/sizes',
@@ -81,107 +133,269 @@ const AppCatalogueDesignsRoute = AppCatalogueDesignsRouteImport.update({
   path: '/designs',
   getParentRoute: () => AppCatalogueRoute,
 } as any)
+const AppStaffUsersIndexRoute = AppStaffUsersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppStaffUsersRoute,
+} as any)
+const AppStaffRolesIndexRoute = AppStaffRolesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppStaffRolesRoute,
+} as any)
+const AppStaffUsersNewRoute = AppStaffUsersNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppStaffUsersRoute,
+} as any)
+const AppStaffUsersStaffIdRoute = AppStaffUsersStaffIdRouteImport.update({
+  id: '/$staffId',
+  path: '/$staffId',
+  getParentRoute: () => AppStaffUsersRoute,
+} as any)
+const AppStaffRolesNewRoute = AppStaffRolesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppStaffRolesRoute,
+} as any)
+const AppStaffRolesRoleIdRoute = AppStaffRolesRoleIdRouteImport.update({
+  id: '/$roleId',
+  path: '/$roleId',
+  getParentRoute: () => AppStaffRolesRoute,
+} as any)
+const AppStaffUsersStaffIdIndexRoute =
+  AppStaffUsersStaffIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppStaffUsersStaffIdRoute,
+  } as any)
+const AppStaffRolesRoleIdIndexRoute =
+  AppStaffRolesRoleIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppStaffRolesRoleIdRoute,
+  } as any)
+const AppStaffUsersStaffIdEditRoute =
+  AppStaffUsersStaffIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppStaffUsersStaffIdRoute,
+  } as any)
+const AppStaffRolesRoleIdEditRoute = AppStaffRolesRoleIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppStaffRolesRoleIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
   '/catalogue': typeof AppCatalogueRouteWithChildren
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/depot': typeof AppDepotRoute
+  '/finance': typeof AppFinanceRoute
   '/inventory': typeof AppInventoryRoute
-  '/orders': typeof AppOrdersRoute
+  '/order': typeof AppOrderRoute
+  '/production': typeof AppProductionRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/staff': typeof AppStaffRouteWithChildren
   '/catalogue/designs': typeof AppCatalogueDesignsRoute
   '/catalogue/finishes': typeof AppCatalogueFinishesRoute
   '/catalogue/series': typeof AppCatalogueSeriesRoute
   '/catalogue/sizes': typeof AppCatalogueSizesRoute
+  '/staff/roles': typeof AppStaffRolesRouteWithChildren
+  '/staff/users': typeof AppStaffUsersRouteWithChildren
+  '/staff/roles/$roleId': typeof AppStaffRolesRoleIdRouteWithChildren
+  '/staff/roles/new': typeof AppStaffRolesNewRoute
+  '/staff/users/$staffId': typeof AppStaffUsersStaffIdRouteWithChildren
+  '/staff/users/new': typeof AppStaffUsersNewRoute
+  '/staff/roles/': typeof AppStaffRolesIndexRoute
+  '/staff/users/': typeof AppStaffUsersIndexRoute
+  '/staff/roles/$roleId/edit': typeof AppStaffRolesRoleIdEditRoute
+  '/staff/users/$staffId/edit': typeof AppStaffUsersStaffIdEditRoute
+  '/staff/roles/$roleId/': typeof AppStaffRolesRoleIdIndexRoute
+  '/staff/users/$staffId/': typeof AppStaffUsersStaffIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
   '/catalogue': typeof AppCatalogueRouteWithChildren
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/depot': typeof AppDepotRoute
+  '/finance': typeof AppFinanceRoute
   '/inventory': typeof AppInventoryRoute
-  '/orders': typeof AppOrdersRoute
+  '/order': typeof AppOrderRoute
+  '/production': typeof AppProductionRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/staff': typeof AppStaffRouteWithChildren
   '/catalogue/designs': typeof AppCatalogueDesignsRoute
   '/catalogue/finishes': typeof AppCatalogueFinishesRoute
   '/catalogue/series': typeof AppCatalogueSeriesRoute
   '/catalogue/sizes': typeof AppCatalogueSizesRoute
+  '/staff/roles/new': typeof AppStaffRolesNewRoute
+  '/staff/users/new': typeof AppStaffUsersNewRoute
+  '/staff/roles': typeof AppStaffRolesIndexRoute
+  '/staff/users': typeof AppStaffUsersIndexRoute
+  '/staff/roles/$roleId/edit': typeof AppStaffRolesRoleIdEditRoute
+  '/staff/users/$staffId/edit': typeof AppStaffUsersStaffIdEditRoute
+  '/staff/roles/$roleId': typeof AppStaffRolesRoleIdIndexRoute
+  '/staff/users/$staffId': typeof AppStaffUsersStaffIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
   '/_app/catalogue': typeof AppCatalogueRouteWithChildren
   '/_app/customers': typeof AppCustomersRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/depot': typeof AppDepotRoute
+  '/_app/finance': typeof AppFinanceRoute
   '/_app/inventory': typeof AppInventoryRoute
-  '/_app/orders': typeof AppOrdersRoute
+  '/_app/order': typeof AppOrderRoute
+  '/_app/production': typeof AppProductionRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/staff': typeof AppStaffRouteWithChildren
   '/_app/catalogue/designs': typeof AppCatalogueDesignsRoute
   '/_app/catalogue/finishes': typeof AppCatalogueFinishesRoute
   '/_app/catalogue/series': typeof AppCatalogueSeriesRoute
   '/_app/catalogue/sizes': typeof AppCatalogueSizesRoute
+  '/_app/staff/roles': typeof AppStaffRolesRouteWithChildren
+  '/_app/staff/users': typeof AppStaffUsersRouteWithChildren
+  '/_app/staff/roles/$roleId': typeof AppStaffRolesRoleIdRouteWithChildren
+  '/_app/staff/roles/new': typeof AppStaffRolesNewRoute
+  '/_app/staff/users/$staffId': typeof AppStaffUsersStaffIdRouteWithChildren
+  '/_app/staff/users/new': typeof AppStaffUsersNewRoute
+  '/_app/staff/roles/': typeof AppStaffRolesIndexRoute
+  '/_app/staff/users/': typeof AppStaffUsersIndexRoute
+  '/_app/staff/roles/$roleId/edit': typeof AppStaffRolesRoleIdEditRoute
+  '/_app/staff/users/$staffId/edit': typeof AppStaffUsersStaffIdEditRoute
+  '/_app/staff/roles/$roleId/': typeof AppStaffRolesRoleIdIndexRoute
+  '/_app/staff/users/$staffId/': typeof AppStaffUsersStaffIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/catalogue'
     | '/customers'
     | '/dashboard'
+    | '/depot'
+    | '/finance'
     | '/inventory'
-    | '/orders'
+    | '/order'
+    | '/production'
     | '/reports'
     | '/settings'
+    | '/staff'
     | '/catalogue/designs'
     | '/catalogue/finishes'
     | '/catalogue/series'
     | '/catalogue/sizes'
+    | '/staff/roles'
+    | '/staff/users'
+    | '/staff/roles/$roleId'
+    | '/staff/roles/new'
+    | '/staff/users/$staffId'
+    | '/staff/users/new'
+    | '/staff/roles/'
+    | '/staff/users/'
+    | '/staff/roles/$roleId/edit'
+    | '/staff/users/$staffId/edit'
+    | '/staff/roles/$roleId/'
+    | '/staff/users/$staffId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
     | '/catalogue'
     | '/customers'
     | '/dashboard'
+    | '/depot'
+    | '/finance'
     | '/inventory'
-    | '/orders'
+    | '/order'
+    | '/production'
     | '/reports'
     | '/settings'
+    | '/staff'
     | '/catalogue/designs'
     | '/catalogue/finishes'
     | '/catalogue/series'
     | '/catalogue/sizes'
+    | '/staff/roles/new'
+    | '/staff/users/new'
+    | '/staff/roles'
+    | '/staff/users'
+    | '/staff/roles/$roleId/edit'
+    | '/staff/users/$staffId/edit'
+    | '/staff/roles/$roleId'
+    | '/staff/users/$staffId'
   id:
     | '__root__'
     | '/_app'
+    | '/login'
     | '/_app/catalogue'
     | '/_app/customers'
     | '/_app/dashboard'
+    | '/_app/depot'
+    | '/_app/finance'
     | '/_app/inventory'
-    | '/_app/orders'
+    | '/_app/order'
+    | '/_app/production'
     | '/_app/reports'
     | '/_app/settings'
+    | '/_app/staff'
     | '/_app/catalogue/designs'
     | '/_app/catalogue/finishes'
     | '/_app/catalogue/series'
     | '/_app/catalogue/sizes'
+    | '/_app/staff/roles'
+    | '/_app/staff/users'
+    | '/_app/staff/roles/$roleId'
+    | '/_app/staff/roles/new'
+    | '/_app/staff/users/$staffId'
+    | '/_app/staff/users/new'
+    | '/_app/staff/roles/'
+    | '/_app/staff/users/'
+    | '/_app/staff/roles/$roleId/edit'
+    | '/_app/staff/users/$staffId/edit'
+    | '/_app/staff/roles/$roleId/'
+    | '/_app/staff/users/$staffId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/staff': {
+      id: '/_app/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof AppStaffRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/settings': {
       id: '/_app/settings'
@@ -197,11 +411,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/orders': {
-      id: '/_app/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof AppOrdersRouteImport
+    '/_app/production': {
+      id: '/_app/production'
+      path: '/production'
+      fullPath: '/production'
+      preLoaderRoute: typeof AppProductionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/order': {
+      id: '/_app/order'
+      path: '/order'
+      fullPath: '/order'
+      preLoaderRoute: typeof AppOrderRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/inventory': {
@@ -209,6 +430,20 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/inventory'
       preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/finance': {
+      id: '/_app/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof AppFinanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/depot': {
+      id: '/_app/depot'
+      path: '/depot'
+      fullPath: '/depot'
+      preLoaderRoute: typeof AppDepotRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
@@ -231,6 +466,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/catalogue'
       preLoaderRoute: typeof AppCatalogueRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/staff/users': {
+      id: '/_app/staff/users'
+      path: '/users'
+      fullPath: '/staff/users'
+      preLoaderRoute: typeof AppStaffUsersRouteImport
+      parentRoute: typeof AppStaffRoute
+    }
+    '/_app/staff/roles': {
+      id: '/_app/staff/roles'
+      path: '/roles'
+      fullPath: '/staff/roles'
+      preLoaderRoute: typeof AppStaffRolesRouteImport
+      parentRoute: typeof AppStaffRoute
     }
     '/_app/catalogue/sizes': {
       id: '/_app/catalogue/sizes'
@@ -260,6 +509,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCatalogueDesignsRouteImport
       parentRoute: typeof AppCatalogueRoute
     }
+    '/_app/staff/users/': {
+      id: '/_app/staff/users/'
+      path: '/'
+      fullPath: '/staff/users/'
+      preLoaderRoute: typeof AppStaffUsersIndexRouteImport
+      parentRoute: typeof AppStaffUsersRoute
+    }
+    '/_app/staff/roles/': {
+      id: '/_app/staff/roles/'
+      path: '/'
+      fullPath: '/staff/roles/'
+      preLoaderRoute: typeof AppStaffRolesIndexRouteImport
+      parentRoute: typeof AppStaffRolesRoute
+    }
+    '/_app/staff/users/new': {
+      id: '/_app/staff/users/new'
+      path: '/new'
+      fullPath: '/staff/users/new'
+      preLoaderRoute: typeof AppStaffUsersNewRouteImport
+      parentRoute: typeof AppStaffUsersRoute
+    }
+    '/_app/staff/users/$staffId': {
+      id: '/_app/staff/users/$staffId'
+      path: '/$staffId'
+      fullPath: '/staff/users/$staffId'
+      preLoaderRoute: typeof AppStaffUsersStaffIdRouteImport
+      parentRoute: typeof AppStaffUsersRoute
+    }
+    '/_app/staff/roles/new': {
+      id: '/_app/staff/roles/new'
+      path: '/new'
+      fullPath: '/staff/roles/new'
+      preLoaderRoute: typeof AppStaffRolesNewRouteImport
+      parentRoute: typeof AppStaffRolesRoute
+    }
+    '/_app/staff/roles/$roleId': {
+      id: '/_app/staff/roles/$roleId'
+      path: '/$roleId'
+      fullPath: '/staff/roles/$roleId'
+      preLoaderRoute: typeof AppStaffRolesRoleIdRouteImport
+      parentRoute: typeof AppStaffRolesRoute
+    }
+    '/_app/staff/users/$staffId/': {
+      id: '/_app/staff/users/$staffId/'
+      path: '/'
+      fullPath: '/staff/users/$staffId/'
+      preLoaderRoute: typeof AppStaffUsersStaffIdIndexRouteImport
+      parentRoute: typeof AppStaffUsersStaffIdRoute
+    }
+    '/_app/staff/roles/$roleId/': {
+      id: '/_app/staff/roles/$roleId/'
+      path: '/'
+      fullPath: '/staff/roles/$roleId/'
+      preLoaderRoute: typeof AppStaffRolesRoleIdIndexRouteImport
+      parentRoute: typeof AppStaffRolesRoleIdRoute
+    }
+    '/_app/staff/users/$staffId/edit': {
+      id: '/_app/staff/users/$staffId/edit'
+      path: '/edit'
+      fullPath: '/staff/users/$staffId/edit'
+      preLoaderRoute: typeof AppStaffUsersStaffIdEditRouteImport
+      parentRoute: typeof AppStaffUsersStaffIdRoute
+    }
+    '/_app/staff/roles/$roleId/edit': {
+      id: '/_app/staff/roles/$roleId/edit'
+      path: '/edit'
+      fullPath: '/staff/roles/$roleId/edit'
+      preLoaderRoute: typeof AppStaffRolesRoleIdEditRouteImport
+      parentRoute: typeof AppStaffRolesRoleIdRoute
+    }
   }
 }
 
@@ -281,30 +600,111 @@ const AppCatalogueRouteWithChildren = AppCatalogueRoute._addFileChildren(
   AppCatalogueRouteChildren,
 )
 
+interface AppStaffRolesRoleIdRouteChildren {
+  AppStaffRolesRoleIdEditRoute: typeof AppStaffRolesRoleIdEditRoute
+  AppStaffRolesRoleIdIndexRoute: typeof AppStaffRolesRoleIdIndexRoute
+}
+
+const AppStaffRolesRoleIdRouteChildren: AppStaffRolesRoleIdRouteChildren = {
+  AppStaffRolesRoleIdEditRoute: AppStaffRolesRoleIdEditRoute,
+  AppStaffRolesRoleIdIndexRoute: AppStaffRolesRoleIdIndexRoute,
+}
+
+const AppStaffRolesRoleIdRouteWithChildren =
+  AppStaffRolesRoleIdRoute._addFileChildren(AppStaffRolesRoleIdRouteChildren)
+
+interface AppStaffRolesRouteChildren {
+  AppStaffRolesRoleIdRoute: typeof AppStaffRolesRoleIdRouteWithChildren
+  AppStaffRolesNewRoute: typeof AppStaffRolesNewRoute
+  AppStaffRolesIndexRoute: typeof AppStaffRolesIndexRoute
+}
+
+const AppStaffRolesRouteChildren: AppStaffRolesRouteChildren = {
+  AppStaffRolesRoleIdRoute: AppStaffRolesRoleIdRouteWithChildren,
+  AppStaffRolesNewRoute: AppStaffRolesNewRoute,
+  AppStaffRolesIndexRoute: AppStaffRolesIndexRoute,
+}
+
+const AppStaffRolesRouteWithChildren = AppStaffRolesRoute._addFileChildren(
+  AppStaffRolesRouteChildren,
+)
+
+interface AppStaffUsersStaffIdRouteChildren {
+  AppStaffUsersStaffIdEditRoute: typeof AppStaffUsersStaffIdEditRoute
+  AppStaffUsersStaffIdIndexRoute: typeof AppStaffUsersStaffIdIndexRoute
+}
+
+const AppStaffUsersStaffIdRouteChildren: AppStaffUsersStaffIdRouteChildren = {
+  AppStaffUsersStaffIdEditRoute: AppStaffUsersStaffIdEditRoute,
+  AppStaffUsersStaffIdIndexRoute: AppStaffUsersStaffIdIndexRoute,
+}
+
+const AppStaffUsersStaffIdRouteWithChildren =
+  AppStaffUsersStaffIdRoute._addFileChildren(AppStaffUsersStaffIdRouteChildren)
+
+interface AppStaffUsersRouteChildren {
+  AppStaffUsersStaffIdRoute: typeof AppStaffUsersStaffIdRouteWithChildren
+  AppStaffUsersNewRoute: typeof AppStaffUsersNewRoute
+  AppStaffUsersIndexRoute: typeof AppStaffUsersIndexRoute
+}
+
+const AppStaffUsersRouteChildren: AppStaffUsersRouteChildren = {
+  AppStaffUsersStaffIdRoute: AppStaffUsersStaffIdRouteWithChildren,
+  AppStaffUsersNewRoute: AppStaffUsersNewRoute,
+  AppStaffUsersIndexRoute: AppStaffUsersIndexRoute,
+}
+
+const AppStaffUsersRouteWithChildren = AppStaffUsersRoute._addFileChildren(
+  AppStaffUsersRouteChildren,
+)
+
+interface AppStaffRouteChildren {
+  AppStaffRolesRoute: typeof AppStaffRolesRouteWithChildren
+  AppStaffUsersRoute: typeof AppStaffUsersRouteWithChildren
+}
+
+const AppStaffRouteChildren: AppStaffRouteChildren = {
+  AppStaffRolesRoute: AppStaffRolesRouteWithChildren,
+  AppStaffUsersRoute: AppStaffUsersRouteWithChildren,
+}
+
+const AppStaffRouteWithChildren = AppStaffRoute._addFileChildren(
+  AppStaffRouteChildren,
+)
+
 interface AppRouteChildren {
   AppCatalogueRoute: typeof AppCatalogueRouteWithChildren
   AppCustomersRoute: typeof AppCustomersRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppDepotRoute: typeof AppDepotRoute
+  AppFinanceRoute: typeof AppFinanceRoute
   AppInventoryRoute: typeof AppInventoryRoute
-  AppOrdersRoute: typeof AppOrdersRoute
+  AppOrderRoute: typeof AppOrderRoute
+  AppProductionRoute: typeof AppProductionRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppStaffRoute: typeof AppStaffRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCatalogueRoute: AppCatalogueRouteWithChildren,
   AppCustomersRoute: AppCustomersRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppDepotRoute: AppDepotRoute,
+  AppFinanceRoute: AppFinanceRoute,
   AppInventoryRoute: AppInventoryRoute,
-  AppOrdersRoute: AppOrdersRoute,
+  AppOrderRoute: AppOrderRoute,
+  AppProductionRoute: AppProductionRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppStaffRoute: AppStaffRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

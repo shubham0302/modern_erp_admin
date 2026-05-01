@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useCatalogueStore } from "../store";
-import type { DesignCode } from "../types";
+import type { LegacyDesignCode as DesignCode } from "../types";
 import Toolbar from "../components/Toolbar";
 import EmptyState from "../components/EmptyState";
 import RowActions from "../components/RowActions";

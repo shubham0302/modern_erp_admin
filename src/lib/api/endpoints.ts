@@ -1,0 +1,18 @@
+export const ENDPOINTS = {
+  ADMIN_LOGIN: "/admin/login",
+  ADMIN_LOGOUT: "/admin/logout",
+  ADMIN_REFRESH: "/admin/refresh",
+  ADMIN_PROFILE: "/admin/profile",
+  ADMIN_STAFF: "/admin/staff",
+  ADMIN_CREATE_STAFF: "/admin/create/staff",
+  ADMIN_ROLES: "/admin/roles",
+  ADMIN_CREATE_ROLE: "/admin/create/role",
+  INVENTORY_SIZES: "/inventory/sizes",
+  INVENTORY_CREATE_SIZE: "/inventory/sizes/create",
+  INVENTORY_FINISHES: "/inventory/finishes",
+  INVENTORY_CREATE_FINISH: "/inventory/finishes/create",
+  INVENTORY_SIZE_FINISHES: "/inventory/size-finishes",
+  INVENTORY_SERIES: "/inventory/series",
+  INVENTORY_CREATE_SERIES: "/inventory/series/create",
+  INVENTORY_DESIGNS: "/inventory/designs",
+} as const;

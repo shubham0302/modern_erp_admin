@@ -2,7 +2,7 @@ import { Pencil, Trash2 } from "lucide-react";
 
 interface RowActionsProps {
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }
 
 const RowActions: React.FC<RowActionsProps> = ({ onEdit, onDelete }) => (
@@ -14,13 +14,15 @@ const RowActions: React.FC<RowActionsProps> = ({ onEdit, onDelete }) => (
     >
       <Pencil size={15} />
     </button>
-    <button
-      onClick={onDelete}
-      className="rounded-lg p-2 text-nl-500 hover:bg-rose-50 hover:text-rose-600"
-      title="Delete"
-    >
-      <Trash2 size={15} />
-    </button>
+    {onDelete && (
+      <button
+        onClick={onDelete}
+        className="rounded-lg p-2 text-nl-500 hover:bg-rose-50 hover:text-rose-600"
+        title="Delete"
+      >
+        <Trash2 size={15} />
+      </button>
+    )}
   </div>
 );
 

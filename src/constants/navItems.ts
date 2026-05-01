@@ -1,15 +1,18 @@
 import {
   LayoutDashboard,
   Package,
-  ShoppingCart,
   Boxes,
+  Factory,
+  ShoppingCart,
+  Wallet,
+  Warehouse,
   Users,
-  FileBarChart2,
-  Settings,
   Ruler,
   Sparkles,
   Layers,
   Palette,
+  UserSquare2,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,12 +36,9 @@ export interface NavSection {
 
 export const NAV_SECTIONS: NavSection[] = [
   {
-    title: "Overview",
-    items: [{ label: "Dashboard", to: "/dashboard", icon: LayoutDashboard }],
-  },
-  {
-    title: "Management",
+    title: "Main",
     items: [
+      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
       {
         label: "Catalogue",
         to: "/catalogue",
@@ -50,16 +50,24 @@ export const NAV_SECTIONS: NavSection[] = [
           { label: "Design", to: "/catalogue/designs", icon: Palette },
         ],
       },
-      { label: "Orders", to: "/orders", icon: ShoppingCart },
       { label: "Inventory", to: "/inventory", icon: Boxes },
-      { label: "Customers", to: "/customers", icon: Users },
-    ],
-  },
-  {
-    title: "System",
-    items: [
-      { label: "Reports", to: "/reports", icon: FileBarChart2 },
-      { label: "Settings", to: "/settings", icon: Settings },
+      { label: "Production", to: "/production", icon: Factory },
+      { label: "Order", to: "/order", icon: ShoppingCart },
+      { label: "Finance", to: "/finance", icon: Wallet },
+      { label: "Depot", to: "/depot", icon: Warehouse },
+      {
+        label: "Staff",
+        to: "/staff",
+        icon: Users,
+        children: [
+          { label: "Users", to: "/staff/users", icon: UserSquare2 },
+          {
+            label: "Roles & Permissions",
+            to: "/staff/roles",
+            icon: ShieldCheck,
+          },
+        ],
+      },
     ],
   },
 ];
